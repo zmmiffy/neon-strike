@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#04050e" />
+  <meta name="description" content="NEON STRIKE —— 原生 JavaScript + Canvas 打造的霓虹风竖版弹幕射击游戏，无需框架、无需构建。" />
+  <title>NEON STRIKE · 霓虹空战</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body data-status="ready">
+  <div class="ambient" aria-hidden="true">
+    <span class="orb orb--cyan"></span>
+    <span class="orb orb--magenta"></span>
+    <span class="orb orb--violet"></span>
+    <span class="grid"></span>
+    <span class="noise"></span>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="NEON STRIKE 首页">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32">
+            <path d="M16 3 27 27l-11-6-11 6z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round" />
+            <path d="M16 12v8" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" />
+          </svg>
+        </span>
+        <span class="brand-text">NEON<em>STRIKE</em></span>
+      </a>
+
+      <div class="top-actions">
+        <span class="status-pill" id="statusPill"><i></i><span id="statusText">待机</span></span>
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="关闭音效" aria-pressed="false">
+          <svg class="icon icon--sound" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
+            <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+          <svg class="icon icon--muted" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor" />
+            <path d="m16 9 5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="game-panel" aria-label="游戏区域">
+        <div class="hud">
+          <div class="stat">
+            <span class="stat-label">SCORE</span>
+            <strong class="stat-value" id="score">0</strong>
+          </div>
+          <div class="stat">
+            <span class="stat-label">BEST</span>
+            <strong class="stat-value stat-value--best" id="best">0</strong>
+          </div>
+          <div class="stat stat--wave">
+            <span class="stat-label">STAGE</span>
+            <strong class="stat-value stat-value--wave" id="wave">WAVE 00</strong>
+          </div>
+          <div class="hud-actions">
+            <button class="icon-btn icon-btn--hud" id="pauseBtn" type="button" aria-label="暂停游戏" disabled>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path class="glyph-pause" d="M8 5v14M16 5v14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+                <path class="glyph-play" d="M8 5.5v13l11-6.5z" fill="currentColor" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="stage" id="stage" tabindex="-1">
+          <canvas id="game" width="480" height="720" role="img" aria-label="霓虹空战游戏画面"></canvas>
+
+          <div class="stage-chrome" aria-hidden="true">
+            <span class="corner corner--tl"></span>
+            <span class="corner corner--tr"></span>
+            <span class="corner corner--bl"></span>
+            <span class="corner corner--br"></span>
+            <span class="scanlines"></span>
+            <span class="stage-vignette"></span>
+          </div>
+
+          <div class="banner" id="banner" hidden aria-hidden="true">
+            <strong id="bannerText">WAVE 1</strong>
+            <span id="bannerSub">ENGAGE</span>
+          </div>
+
+          <div class="combo-widget" aria-hidden="true">
+            <strong id="combo"></strong>
+            <span class="combo-track"><i id="comboBar"></i></span>
+          </div>
+
+          <p class="touch-hint" id="touchHint">拖动屏幕操控战机 · 松手即停</p>
+
+          <div class="overlay" id="overlay" data-screen="start">
+            <div class="screen screen--start">
+              <p class="eyebrow">ARCADE <span>//</span> 02</p>
+              <h1 class="hero-title">NEON<span>STRIKE</span></h1>
+              <p class="hero-copy">驾驶「流光」战机穿越霓虹封锁线。<br />击落敌机、拾取强化、击破每五波的旗舰。</p>
+
+              <ul class="feature-row">
+                <li><b>∞</b>波次推进</li>
+                <li><b>5</b>级火力</li>
+                <li><b>B</b>清屏炸弹</li>
+              </ul>
+
+              <button class="primary-btn" id="startBtn" type="button">
+                <span>出击</span>
+                <kbd>Enter</kbd>
+              </button>
+              <p class="overlay-foot">
+                <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 移动
+                · <kbd>Shift</kbd> 精准
+                · <kbd>B</kbd> 炸弹
+                · <kbd>Space</kbd> 暂停
+              </p>
+            </div>
+
+            <div class="screen screen--pause">
+              <p class="eyebrow">SYSTEM <span>//</span> HOLD</p>
+              <h2 class="screen-title">PAUSED</h2>
+              <p class="screen-copy">引擎怠速，星域为你静止。</p>
+              <div class="btn-row">
+                <button class="primary-btn" id="resumeBtn" type="button"><span>继续作战</span><kbd>Space</kbd></button>
+                <button class="ghost-btn" id="pauseMenuBtn" type="button">返回主菜单</button>
+              </div>
+            </div>
+
+            <div class="screen screen--over">
+              <p class="eyebrow">SIGNAL <span>//</span> LOST</p>
+              <h2 class="screen-title">MISSION FAILED</h2>
+              <p class="screen-copy">战机已失联。整理数据，再来一次。</p>
+              <div class="result-grid">
+                <div class="result">
+                  <span>本局得分</span>
+                  <strong id="finalScore">0</strong>
+                </div>
+                <div class="result">
+                  <span>抵达波次</span>
+                  <strong id="finalWave">0</strong>
+                </div>
+                <div class="result">
+                  <span>击落敌机</span>
+                  <strong id="finalKills">0</strong>
+                </div>
+                <div class="result">
+                  <span>历史最佳</span>
+                  <strong id="finalBest">0</strong>
+                </div>
+              </div>
+              <p class="record-badge" id="recordBadge" hidden>◆ NEW RECORD ◆</p>
+              <div class="btn-row">
+                <button class="primary-btn" id="restartBtn" type="button"><span>再次出击</span><kbd>Enter</kbd></button>
+                <button class="ghost-btn" id="menuBtn" type="button">返回主菜单</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="touch-controls">
+          <button class="bomb-btn" id="bombBtn" type="button" disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="12" cy="13" r="7" fill="none" stroke="currentColor" stroke-width="2" />
+              <path d="M12 6V3m0 0 2.5 2M12 3 9.5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+            </svg>
+            <span>炸弹</span>
+            <b id="bombs">×2</b>
+          </button>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="panel-card panel-card--intro">
+          <p class="panel-kicker">MISSION</p>
+          <h3>守住这条封锁线</h3>
+          <p>击落敌机累积连击加成；每清空一波都能拿到额外奖励。第五波起，旗舰会亲自出马。</p>
+        </section>
+
+        <section class="panel-card">
+          <div class="panel-head">
+            <p class="panel-kicker">LOADOUT</p>
+            <span class="live-dot"><i></i>LIVE</span>
+          </div>
+          <div class="loadout">
+            <div class="loadout-row">
+              <span class="loadout-label">护盾</span>
+              <span class="pips" id="lives" aria-label="剩余护盾"></span>
+            </div>
+            <div class="loadout-row">
+              <span class="loadout-label">火力</span>
+              <span class="pips pips--weapon" id="weaponPips" aria-label="火力等级"></span>
+              <b class="loadout-value" id="weaponLabel">LV.1</b>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-card">
+          <p class="panel-kicker">THREATS</p>
+          <ul class="threat-list">
+            <li><span class="threat threat--drone"></span><div><b>侦察机</b><i>直线俯冲，单发点射</i></div></li>
+            <li><span class="threat threat--weaver"></span><div><b>织网者</b><i>横向摆动，双发散射</i></div></li>
+            <li><span class="threat threat--sniper"></span><div><b>狙击手</b><i>悬停锁定，三连速射</i></div></li>
+            <li><span class="threat threat--tank"></span><div><b>堡垒机</b><i>环形弹幕，高血量</i></div></li>
+            <li><span class="threat threat--boss"></span><div><b>旗舰</b><i>每五波出现，三段形态</i></div></li>
+          </ul>
+        </section>
+
+        <section class="panel-card">
+          <p class="panel-kicker">CONTROLS</p>
+          <ul class="control-list">
+            <li><span class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><span>移动</span></li>
+            <li><span class="keys"><kbd>Shift</kbd></span><span>精准模式</span></li>
+            <li><span class="keys"><kbd>B</kbd></span><span>清屏炸弹</span></li>
+            <li><span class="keys"><kbd>Space</kbd></span><span>暂停 / 继续</span></li>
+            <li><span class="keys"><kbd>M</kbd></span><span>静音切换</span></li>
+          </ul>
+        </section>
+
+        <section class="panel-card panel-card--tip">
+          <p class="panel-kicker">TIP</p>
+          <p>按住 <b>Shift</b> 会收束弹道并减速，适合在弹幕缝隙里穿针。连击越高，得分倍率越高。</p>
+        </section>
+
+        <a class="repo-link" href="https://github.com/zmmiffy/neon-strike" target="_blank" rel="noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.34 1.09 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.02a9.5 9.5 0 0 1 5 0c1.91-1.29 2.75-1.02 2.75-1.02.55 1.38.2 2.4.1 2.65.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.93.36.31.68.92.68 1.85v2.74c0 .27.18.58.69.48A10 10 0 0 0 12 2z" fill="currentColor" /></svg>
+          <span>View source on GitHub</span>
+          <span aria-hidden="true">↗</span>
+        </a>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span>© 2026 NEON STRIKE</span>
+      <span class="footer-mid">VANILLA JS + CANVAS + WEBAUDIO</span>
+      <span>NO FRAMEWORK · NO BUILD STEP</span>
+    </footer>
+  </div>
+
+  <div class="sr-only" aria-live="polite" id="liveRegion"></div>
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>

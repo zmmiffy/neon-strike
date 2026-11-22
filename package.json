@@ -1,0 +1,17 @@
+{
+  "name": "neon-strike",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NEON STRIKE — a zero-dependency neon vertical shmup built with vanilla JS, Canvas and WebAudio.",
+  "type": "module",
+  "scripts": {
+    "start": "node scripts/serve.mjs",
+    "dev": "node scripts/serve.mjs --port 4173",
+    "test": "node --test tests/"
+  },
+  "keywords": ["game", "canvas", "shmup", "arcade", "vanilla-js", "webaudio"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  }
+}
